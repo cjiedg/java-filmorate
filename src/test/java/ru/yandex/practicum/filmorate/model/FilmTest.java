@@ -17,8 +17,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static ru.yandex.practicum.filmorate.model.Film.EARLIEST_RELEASE_DATE;
 
 public class FilmTest {
-    private static Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
-    private String formattedDate = DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale.of("ru")).withZone(ZoneId.systemDefault()).format(EARLIEST_RELEASE_DATE);
+    private static final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+    private final String formattedDate = DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale.of("ru")).withZone(ZoneId.systemDefault()).format(EARLIEST_RELEASE_DATE);
 
     private Film createValidFilm() {
         return Film.builder()

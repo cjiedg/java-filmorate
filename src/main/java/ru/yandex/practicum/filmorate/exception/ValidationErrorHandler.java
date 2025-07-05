@@ -13,21 +13,19 @@ import java.util.Map;
 @Slf4j
 @RestControllerAdvice
 public class ValidationErrorHandler {
-
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleValidationErrors(MethodArgumentNotValidException ex) {
 
         Map<String, String> errors = new HashMap<>();
 
-        ex.getBindingResult().getFieldErrors().forEach(error ->
-                {
-                    String field = error.getField();
-                    String msg = error.getDefaultMessage();
-                    errors.put(field, msg);
-                    log.warn("Ошибка валидации - Поле: {}, Ошибка: {}", field, msg);
-                }
-        );
+        ex.getBindingResult().getFieldErrors().forEach(error -> {
+            String field = error.getField();
+
+            String msg = error.getDefaultMessage();
+            errors.put(field, msg);
+            log.warn("Ошибка валидации - Поле: {}, Ошибка: {}", field, msg);
+        });
         return errors;
     }
 }
