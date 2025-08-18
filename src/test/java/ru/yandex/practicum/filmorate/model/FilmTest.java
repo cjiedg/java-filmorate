@@ -78,8 +78,8 @@ public class FilmTest {
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
 
         assertEquals(1, violations.size(), "Ожидалось одно нарушение, найдено: " + violations.size());
-        assertEquals("Максимальная длина описания - " + Film.MAX_DESCRIPTION_LENGTH + " символов", violations.iterator().next().getMessage(),
-                "Сообщение для вывода: Максимальная длина описания - " + Film.MAX_DESCRIPTION_LENGTH + " символов");
+        assertEquals("Максимальная длина описания - 200 символов", violations.iterator().next().getMessage(),
+                "Сообщение для вывода: Максимальная длина описания - 200 символов");
     }
 
     @Test
