@@ -16,8 +16,6 @@
 
 - **user (Пользователи):** Таблица с данными зарегистрированных пользователей.
 
-- **status (Статусы дружбы):** Справочник статусов (например, "Подтвержденная", "Неподтвержденная").
-
 - **friendship (Дружба):** Таблица для связи пользователей между собой. Реализует симметричную или асимметричную дружбу с подтверждением.
 
 - **film_likes (Лайки фильмов):** Связующая таблица для учета, какой пользователь какой фильм лайкнул.
@@ -44,11 +42,10 @@
          u.user_id,
          u.name,
          u.login,
-         s.name AS Статус_дружбы
+         f.status AS Статус_дружбы
    FROM user u
    JOIN friendship f ON u.user_id = f.friend_id
-   JOIN status s ON f.status_id = s.status_id
-   WHERE f.user_id = 1 AND s.name = 'Подтвержденная'
+   WHERE f.user_id = 1 AND f.status = TRUE
 
    UNION
 
@@ -56,11 +53,10 @@
         u.user_id,
         u.name,
         u.login,
-        s.name AS Статус_дружбы
+        f.status AS Статус_дружбы
    FROM user u
    JOIN friendship f ON u.user_id = f.user_id
-   JOIN status s ON f.status_id = s.status_id
-   WHERE f.friend_id = 1 AND s.name = 'Подтвержденная';
+   WHERE f.friend_id = 1 AND f.status = TRUE;
  
 2. **Операции вставки**
 
@@ -84,10 +80,10 @@
     Создать заявку в друзья
 
     ```sql
-    INSERT INTO friendship (user_id, friend_id, status_id)
+    INSERT INTO friendship (user_id, friend_id, status)
     VALUES (
       1,
       2,
-      (SELECT status_id FROM status WHERE name = 'Неподтвержденная'));
+      FALSE);
     ```
    
