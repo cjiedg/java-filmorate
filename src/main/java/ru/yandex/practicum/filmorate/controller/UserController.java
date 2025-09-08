@@ -67,11 +67,10 @@ public class UserController {
     @PutMapping("/{id}/friends/{friendId}")
     public void addFriend(@PathVariable Long id,
                           @PathVariable Long friendId) {
-        log.info("Запрос на добавление в друзья пользователей с id {} и {}", id, friendId);
+        log.info("Запрос на добавление в друзья пользователей с id {} (отправитель) и {} (получатель)", id, friendId);
         userService.addFriend(id, friendId);
-        log.debug("Пользователи с id {} и {} добавлены друг другу в друзья", id, friendId);
+        log.debug("Отправлен запрос на добавление в друзья пользователей с id {} (отправитель) и {} (получатель)", id, friendId);
     }
-
 
 
     @GetMapping("{id}/friends")
@@ -85,7 +84,7 @@ public class UserController {
     @DeleteMapping("/{id}/friends/{friendId}")
     public void removeFriend(@PathVariable Long id,
                              @PathVariable Long friendId) {
-        log.info("Запрос на удаление из друзей пользователей с id {} и {}", id, friendId);
+        log.info("Запрос на удаление из друзей пользователей с id {} (отправитель) и {}", id, friendId);
         userService.removeFriend(id, friendId);
         log.debug("Пользователи с id {} и {} больше не друзья", id, friendId);
     }
@@ -98,5 +97,12 @@ public class UserController {
         Collection<User> commonFriends = userService.getCommonFriends(id, otherId);
         log.debug("Количество общих друзей пользователей с id = {} и {}: {}", id, otherId, commonFriends.size());
         return commonFriends;
+    }
+
+    @PostMapping("/{id}/friends/{friendId}/confirm")
+    public void confirmFriendship(@PathVariable Long id, @PathVariable Long friendId) {
+        log.info("Подтверждение запроса о добавлении в друзья пользователя с id {} (отправитель) полльзователю {} (получатель)", id, friendId);
+        userService.confirmFriendship(id, friendId);
+        log.debug("Пользователи с id {} и {} добавлены друг другу в друзья", id, friendId);
     }
 }

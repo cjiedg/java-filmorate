@@ -2,6 +2,8 @@ package ru.yandex.practicum.filmorate.service.film;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
@@ -48,8 +50,8 @@ public class FilmServiceImpl implements FilmService {
         if (newFilmName != null && !newFilmName.isBlank()) {
             oldFilm.setName(newFilmName);
         }
-        if (newFilm.getGenre() != null && !newFilm.getGenre().isEmpty()) {
-            oldFilm.setGenre(new ArrayList<>(newFilm.getGenre()));
+        if (newFilm.getGenres() != null && !newFilm.getGenres().isEmpty()) {
+            oldFilm.setGenres(new ArrayList<>(newFilm.getGenres()));
         }
         return filmStorage.update(newFilm, oldFilm);
     }

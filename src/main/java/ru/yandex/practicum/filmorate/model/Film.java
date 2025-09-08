@@ -2,14 +2,17 @@ package ru.yandex.practicum.filmorate.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.Entity;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import ru.yandex.practicum.filmorate.annotation.EqualOrAfter;
 
 import java.time.Duration;
@@ -22,22 +25,23 @@ import java.util.Set;
 @Data
 @EqualsAndHashCode(of = "id")
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Film {
     public static final LocalDate EARLIEST_RELEASE_DATE = LocalDate.of(1895, 12, 28);
     public static final int MAX_DESCRIPTION_LENGTH = 200;
     private final Set<Long> likes = new HashSet<>();
-    @NotEmpty
-    private List<String> genre = new ArrayList<>();
     private Long id;
     @NotBlank(message = "Название фильма не может быть пустым")
     private String name;
     @Size(max = MAX_DESCRIPTION_LENGTH, message = "Максимальная длина описания - " + MAX_DESCRIPTION_LENGTH + " символов")
     private String description;
+    private Duration duration;
     @EqualOrAfter()
     private LocalDate releaseDate;
-    private Duration duration;
     @NotNull
-    private String rating;
+    private Long rating;
+    private List<Long> genres = new ArrayList<>();
 
 
     @AssertTrue(message = "Продолжительность фильма должна быть положительным числом")
@@ -45,11 +49,11 @@ public class Film {
         return duration != null && duration.isPositive();
     }
 
-    @AssertTrue(message = "Рейтинг должен быть значением из списка Ассоциации кинокомпаний")
+/*    @AssertTrue(message = "Рейтинг должен быть значением из списка Ассоциации кинокомпаний")
     private boolean isValidRating() {
         List<String> ratingList = List.of("G", "PG", "PG-13", "R", "NC-17");
         return rating != null && ratingList.contains(this.rating);
-    }
+    }*/
 
     @JsonProperty("duration")
     public void setDurationFromMinutes(long minutes) {

@@ -28,8 +28,8 @@ public class FilmTest {
                 .description("Valid description")
                 .releaseDate(LocalDate.of(2012, 12, 5))
                 .duration(Duration.ofMinutes(45))
-                .rating("G")
-                .genre(List.of("Comedy", "Thriller"))
+                .rating(5L)
+                .genres(List.of(6L, 1L))
                 .build();
         return film;
     }

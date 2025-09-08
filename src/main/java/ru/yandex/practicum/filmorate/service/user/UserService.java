@@ -23,4 +23,6 @@ public interface UserService {
     User update(User newUser);
 
     void delete(long id);
+
+    void confirmFriendship(long userId, long friendId);
 }
