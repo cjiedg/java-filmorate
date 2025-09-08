@@ -1,8 +1,9 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,35 +15,28 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.film.FilmService;
-import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import java.util.Collection;
 
 @Slf4j
 @RestController
 @RequestMapping("/films")
+@RequiredArgsConstructor
 public class FilmController {
-    private final FilmStorage filmStorage;
     private final FilmService filmService;
-
-    @Autowired
-    public FilmController(FilmStorage filmStorage, FilmService filmService) {
-        this.filmStorage = filmStorage;
-        this.filmService = filmService;
-    }
 
     @GetMapping
     public Collection<Film> findAll() {
         log.info("Запрос на получение списка всех фильмов");
-        Collection<Film> allFilms = filmStorage.findAll();
+        Collection<Film> allFilms = filmService.findAll();
         log.debug("Найдено фильмов: {}", allFilms.size());
         return allFilms;
     }
 
     @GetMapping("/{id}")
-    public Film findFilm(@PathVariable Long id) {
+    public Film getFilmById(@PathVariable Long id) {
         log.info("Запрос на получение фильма с id = {}", id);
-        Film foundFilm = filmStorage.findById(id);
+        Film foundFilm = filmService.getFilmById(id);
         log.debug("Найден фильм с id = {}", id);
         return foundFilm;
     }
@@ -50,7 +44,7 @@ public class FilmController {
     @PostMapping
     public Film create(@RequestBody @Valid Film film) {
         log.info("Запрос на создание фильма {}", film);
-        Film createdFilm = filmStorage.create(film);
+        Film createdFilm = filmService.create(film);
         log.debug("Создан фильм с id = {}", film.getId());
         return createdFilm;
     }
@@ -58,9 +52,16 @@ public class FilmController {
     @PutMapping
     public Film update(@RequestBody @Valid Film newFilm) {
         log.info("Запрос на обновление фильма {}", newFilm);
-        Film updatedFilm = filmStorage.update(newFilm);
+        Film updatedFilm = filmService.update(newFilm);
         log.debug("Фильм с id = {} успешно обновлён: {}", updatedFilm.getId(), updatedFilm);
         return updatedFilm;
+    }
+
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable @Positive Long id) {
+        log.info("Запрос на удаление фильма с id = {}", id);
+        Film foundFilm = filmService.getFilmById(id);
+        log.debug("Удалён фильм с id = {}", id);
     }
 
     @GetMapping("/popular")

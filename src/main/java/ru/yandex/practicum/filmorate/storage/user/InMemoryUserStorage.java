@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 @Slf4j
@@ -27,11 +28,6 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User create(User user) throws ValidationException {
-        if (emails.contains(user.getEmail())) {
-            String msg = "Email уже используется";
-            log.warn(msg);
-            throw new ValidationException(msg);
-        }
         Long id = generateNextId();
         user.setId(id);
         user.setName(user.getName() == null ? user.getLogin() : user.getName());
@@ -43,13 +39,13 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public User update(User newUser) throws ValidationException {
         Long newUserId = newUser.getId();
-        User oldUser = findById(newUserId);
-        if (!(oldUser.getEmail().equals(newUser.getEmail()))
-                && emails.contains(newUser.getEmail())) {
-            String msg = "Email уже используется";
-            log.warn(msg);
-            throw new ValidationException(msg);
-        }
+        User oldUser = getUserById(newUserId)
+                .orElseThrow(() -> {
+                    String msg = "Пользователь с id = " + newUserId + " не найден";
+                    log.warn(msg);
+
+                    throw new NotFoundException(msg);
+                });
         if (newUser.getEmail() != null && !newUser.getEmail().equals(oldUser.getEmail())) {
             emails.remove(oldUser.getEmail());
             emails.add(newUser.getEmail());
@@ -63,39 +59,24 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User findById(long id) {
-        validateId(id);
-        if (!users.containsKey(id)) {
-            String msg = "Пользователь с id = " + id + " не найден";
-            log.warn(msg);
-            throw new NotFoundException(msg);
-        }
-        return users.get(id);
+    public Optional<User> getUserById(long id) {
+        return Optional.ofNullable(users.get(id));
     }
 
     @Override
-    public void delete(long id) {
-        User user = findById(id);
+    public void delete(User user) {
         emails.remove(user.getEmail());
         users.remove(user.getId());
+    }
+
+    @Override
+    public boolean existsByEmail(String email) {
+        return emails.contains(email);
     }
 
     private Long generateNextId() {
         return users.keySet().stream()
                 .max(Long::compareTo)
                 .orElse(0L) + 1;
-    }
-
-    private void validateId(Long id) throws ValidationException {
-        if (id == null) {
-            String msg = "Id должен быть указан";
-            log.warn(msg);
-            throw new ValidationException(msg);
-        }
-        if (id <= 0) {
-            String msg = "Id должен быть положительным числом";
-            log.warn(msg);
-            throw new ValidationException(msg);
-        }
     }
 }

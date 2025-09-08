@@ -9,5 +9,4 @@ import lombok.ToString;
 @Getter
 public class ErrorResponse {
     private final String message;
-
 }

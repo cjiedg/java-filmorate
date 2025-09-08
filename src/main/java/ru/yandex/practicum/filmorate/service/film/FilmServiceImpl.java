@@ -1,40 +1,75 @@
 package ru.yandex.practicum.filmorate.service.film;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.user.UserService;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class FilmServiceImpl implements FilmService {
     private final FilmStorage filmStorage;
-    private final UserStorage userStorage;
+    private final UserService userService;
 
-    @Autowired
-    public FilmServiceImpl(FilmStorage filmStorage, UserStorage userStorage) {
-        this.filmStorage = filmStorage;
-        this.userStorage = userStorage;
+    @Override
+    public Collection<Film> findAll() {
+        return filmStorage.findAll();
+    }
+
+    @Override
+    public Film getFilmById(Long id) {
+        validateId(id);
+        return getFilmOrThrow(id);
+    }
+
+    @Override
+    public Film create(Film film) {
+        return filmStorage.create(film);
+    }
+
+    @Override
+    public Film update(Film newFilm) {
+        Long newFilmId = newFilm.getId();
+        Film oldFilm = getFilmById(newFilmId);
+        String newFilmName = newFilm.getName();
+        log.trace("Обновление полей фильм id = {}", newFilm.getId());
+        if (newFilmName != null && !newFilmName.isBlank()) {
+            oldFilm.setName(newFilmName);
+        }
+        if (newFilm.getGenre() != null && !newFilm.getGenre().isEmpty()) {
+            oldFilm.setGenre(new ArrayList<>(newFilm.getGenre()));
+        }
+        return filmStorage.update(newFilm, oldFilm);
+    }
+
+    @Override
+    public void delete(Long id) {
+        validateId(id);
+        userService.delete(getFilmOrThrow(id).getId());
     }
 
     @Override
     public void addLike(long userId, long filmId) {
-        User user = userStorage.findById(userId);
-        filmStorage.findById(filmId).getLikes().add(userId);
+        User user = userService.getUserById(userId);
+        getFilmOrThrow(filmId).getLikes().add(userId);
     }
 
     @Override
     public void removeLike(long userId, long filmId) {
-        User user = userStorage.findById(userId);
-        filmStorage.findById(filmId).getLikes().remove(userId);
+        User user = userService.getUserById(userId);
+        getFilmOrThrow(filmId).getLikes().remove(userId);
     }
 
     @Override
@@ -51,5 +86,27 @@ public class FilmServiceImpl implements FilmService {
                 .limit(count)
                 .collect(Collectors.toList()
                 );
+    }
+
+    private void validateId(Long id) {
+        if (id == null) {
+            String msg = "Id должен быть указан";
+            log.warn(msg);
+            throw new ValidationException(msg);
+        }
+        if (id <= 0) {
+            String msg = "Id должен быть положительным числом";
+            log.warn(msg);
+            throw new ValidationException(msg);
+        }
+    }
+
+    private Film getFilmOrThrow(Long filmId) {
+        return filmStorage.getFilmById(filmId)
+                .orElseThrow(() -> {
+                    String msg = "Фильм с id = " + filmId + " не найден";
+                    log.warn(msg);
+                    throw new NotFoundException(msg);
+                });
     }
 }

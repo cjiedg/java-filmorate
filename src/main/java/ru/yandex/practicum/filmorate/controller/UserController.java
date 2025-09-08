@@ -2,8 +2,9 @@ package ru.yandex.practicum.filmorate.controller;
 
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,35 +15,28 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.user.UserService;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.Collection;
 
 @Slf4j
 @RestController
 @RequestMapping("/users")
+@RequiredArgsConstructor
 public class UserController {
-    private final UserStorage userStorage;
     private final UserService userService;
-
-    @Autowired
-    public UserController(UserStorage userStorage, UserService userService) {
-        this.userStorage = userStorage;
-        this.userService = userService;
-    }
 
     @GetMapping
     public Collection<User> findAll() {
         log.info("Запрос на получение всех пользователей");
-        Collection<User> allUsers = userStorage.findAll();
+        Collection<User> allUsers = userService.findAll();
         log.debug("Найдено пользователей: {}", allUsers.size());
         return allUsers;
     }
 
     @GetMapping("/{id}")
-    public User findUser(@PathVariable Long id) {
+    public User getUserById(@PathVariable @Positive Long id) {
         log.info("Запрос на получение пользователя с id = {}", id);
-        User foundUser = userStorage.findById(id);
+        User foundUser = userService.getUserById(id);
         log.debug("Найден пользователь с id = {}", id);
         return foundUser;
     }
@@ -50,7 +44,7 @@ public class UserController {
     @PostMapping
     public User create(@RequestBody @Valid User user) {
         log.info("Запрос на создание пользователя {}", user);
-        User createdUser = userStorage.create(user);
+        User createdUser = userService.create(user);
         log.debug("Создан пользователь с id = {}", user.getId());
         return createdUser;
     }
@@ -58,9 +52,16 @@ public class UserController {
     @PutMapping
     public User update(@RequestBody @Valid User newUser) {
         log.info("Запрос на обновление пользователя {}", newUser);
-        User updatedUser = userStorage.update(newUser);
+        User updatedUser = userService.update(newUser);
         log.debug("Фильм с id = {} успешно обновлён: {}", updatedUser.getId(), updatedUser);
         return updatedUser;
+    }
+
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable @Positive Long id) {
+        log.info("Запрос на удаление пользователя с id = {}", id);
+        userService.delete(id);
+        log.debug("Удалён пользователь с id = {}", id);
     }
 
     @PutMapping("/{id}/friends/{friendId}")
@@ -70,6 +71,8 @@ public class UserController {
         userService.addFriend(id, friendId);
         log.debug("Пользователи с id {} и {} добавлены друг другу в друзья", id, friendId);
     }
+
+
 
     @GetMapping("{id}/friends")
     public Collection<User> findFriends(@PathVariable Long id) {

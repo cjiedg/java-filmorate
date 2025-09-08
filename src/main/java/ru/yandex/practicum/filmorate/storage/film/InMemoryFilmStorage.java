@@ -2,14 +2,13 @@ package ru.yandex.practicum.filmorate.storage.film;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
 @Component
@@ -30,48 +29,22 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Film update(Film newFilm) {
-        Long newFilmId = newFilm.getId();
-        Film oldFilm = findById(newFilmId);
-        String newFilmName = newFilm.getName();
-
-        if (newFilmName != null && !newFilmName.isBlank()) {
-            oldFilm.setName(newFilmName);
-        }
-        log.trace("Обновление полей фильм id = {}", newFilmId);
+    public Film update(Film newFilm, Film oldFilm) {
         oldFilm.setDescription(Objects.requireNonNullElse(newFilm.getDescription(), oldFilm.getDescription()));
         oldFilm.setReleaseDate(Objects.requireNonNullElse(newFilm.getReleaseDate(), oldFilm.getReleaseDate()));
         oldFilm.setDuration(Objects.requireNonNullElse(newFilm.getDuration(), oldFilm.getDuration()));
+        oldFilm.setRating(Objects.requireNonNullElse(newFilm.getRating(), oldFilm.getRating()));
         return oldFilm;
     }
 
     @Override
-    public Film findById(long id) {
-        validateId(id);
-        if (!films.containsKey(id)) {
-            String msg = "Фильм с id = " + id + " не найден";
-            log.warn(msg);
-            throw new NotFoundException(msg);
-        }
-        return films.get(id);
+    public Optional<Film> getFilmById(long id) {
+        return Optional.ofNullable(films.get(id));
     }
 
     @Override
     public void delete(long id) {
-        films.remove(this.findById(id).getId());
-    }
-
-    private void validateId(Long id) {
-        if (id == null) {
-            String msg = "Id должен быть указан";
-            log.warn(msg);
-            throw new ValidationException(msg);
-        }
-        if (id <= 0) {
-            String msg = "Id должен быть положительным числом";
-            log.warn(msg);
-            throw new ValidationException(msg);
-        }
+        films.remove(id);
     }
 
     private Long generateNextId() {

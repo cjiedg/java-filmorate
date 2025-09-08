@@ -4,26 +4,30 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import ru.yandex.practicum.filmorate.annotation.EqualOrAfter;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Data
 @EqualsAndHashCode(of = "id")
 @Builder
-@Getter
 public class Film {
     public static final LocalDate EARLIEST_RELEASE_DATE = LocalDate.of(1895, 12, 28);
     public static final int MAX_DESCRIPTION_LENGTH = 200;
     private final Set<Long> likes = new HashSet<>();
+    @NotEmpty
+    private List<String> genre = new ArrayList<>();
     private Long id;
     @NotBlank(message = "Название фильма не может быть пустым")
     private String name;
@@ -32,11 +36,19 @@ public class Film {
     @EqualOrAfter()
     private LocalDate releaseDate;
     private Duration duration;
+    @NotNull
+    private String rating;
+
 
     @AssertTrue(message = "Продолжительность фильма должна быть положительным числом")
-    public boolean isValidDuration() {
-        if (duration == null) return true;
-        return duration.isPositive();
+    private boolean isValidDuration() {
+        return duration != null && duration.isPositive();
+    }
+
+    @AssertTrue(message = "Рейтинг должен быть значением из списка Ассоциации кинокомпаний")
+    private boolean isValidRating() {
+        List<String> ratingList = List.of("G", "PG", "PG-13", "R", "NC-17");
+        return rating != null && ratingList.contains(this.rating);
     }
 
     @JsonProperty("duration")

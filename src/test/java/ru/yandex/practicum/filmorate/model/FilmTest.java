@@ -9,24 +9,29 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static ru.yandex.practicum.filmorate.model.Film.EARLIEST_RELEASE_DATE;
+import static ru.yandex.practicum.filmorate.model.Film.MAX_DESCRIPTION_LENGTH;
 
 public class FilmTest {
     private static final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
     private final String formattedDate = DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale.of("ru")).withZone(ZoneId.systemDefault()).format(EARLIEST_RELEASE_DATE);
 
     private Film createValidFilm() {
-        return Film.builder()
+        Film film = Film.builder()
                 .name("Valid film")
                 .description("Valid description")
                 .releaseDate(LocalDate.of(2012, 12, 5))
                 .duration(Duration.ofMinutes(45))
+                .rating("G")
+                .genre(List.of("Comedy", "Thriller"))
                 .build();
+        return film;
     }
 
     @Test
@@ -61,7 +66,7 @@ public class FilmTest {
     }
 
     @Test
-    void shouldPassValidationIfDescriptionLengthIs200Symbols() {
+    void shouldPassValidationIfDescriptionLengthIsMAX_DESCRIPTION_LENGTHSymbols() {
         Film film = createValidFilm();
         film.setDescription("a".repeat(Film.MAX_DESCRIPTION_LENGTH));
 
@@ -71,15 +76,15 @@ public class FilmTest {
     }
 
     @Test
-    void shouldFailValidationIfDescriptionLengthIsMoreThan200Symbols() {
+    void shouldFailValidationIfDescriptionLengthIsMoreThanMAX_DESCRIPTION_LENGTHSymbols() {
         Film film = createValidFilm();
         film.setDescription("a".repeat(Film.MAX_DESCRIPTION_LENGTH + 1));
 
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
 
         assertEquals(1, violations.size(), "Ожидалось одно нарушение, найдено: " + violations.size());
-        assertEquals("Максимальная длина описания - 200 символов", violations.iterator().next().getMessage(),
-                "Сообщение для вывода: Максимальная длина описания - 200 символов");
+        assertEquals("Максимальная длина описания - " + MAX_DESCRIPTION_LENGTH + " символов", violations.iterator().next().getMessage(),
+                "Сообщение для вывода: Максимальная длина описания - " + MAX_DESCRIPTION_LENGTH + " символов");
     }
 
     @Test
@@ -117,4 +122,9 @@ public class FilmTest {
         assertEquals("Продолжительность фильма должна быть положительным числом", violations.iterator().next().getMessage(),
                 "Сообщение для вывода: Продолжительность фильма должна быть положительным числом");
     }
+
+/*    @Test
+    void shouldFailValidationIfRatingIsNull() {
+        Film film = createValidFilm();
+    }*/
 }

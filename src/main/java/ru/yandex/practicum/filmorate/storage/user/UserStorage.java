@@ -4,6 +4,7 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.Collection;
+import java.util.Optional;
 
 public interface UserStorage {
     Collection<User> findAll();
@@ -12,7 +13,9 @@ public interface UserStorage {
 
     User update(User newUser) throws ValidationException;
 
-    User findById(long id);
+    Optional<User> getUserById(long id);
 
-    void delete(long id);
+    void delete(User user);
+
+    boolean existsByEmail(String email);
 }
