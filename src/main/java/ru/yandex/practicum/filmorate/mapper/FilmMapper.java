@@ -6,13 +6,10 @@ import ru.yandex.practicum.filmorate.dto.Film.CreateFilmRequest;
 import ru.yandex.practicum.filmorate.dto.Film.FilmDto;
 import ru.yandex.practicum.filmorate.dto.Film.UpdateFilmRequest;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.MpaRating;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class FilmMapper {

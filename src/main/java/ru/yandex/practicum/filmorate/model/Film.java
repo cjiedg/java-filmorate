@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.Entity;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -12,7 +11,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import ru.yandex.practicum.filmorate.annotation.EqualOrAfter;
 
 import java.time.Duration;
@@ -48,12 +46,6 @@ public class Film {
     private boolean isValidDuration() {
         return duration != null && duration.isPositive();
     }
-
-/*    @AssertTrue(message = "Рейтинг должен быть значением из списка Ассоциации кинокомпаний")
-    private boolean isValidRating() {
-        List<String> ratingList = List.of("G", "PG", "PG-13", "R", "NC-17");
-        return rating != null && ratingList.contains(this.rating);
-    }*/
 
     @JsonProperty("duration")
     public void setDurationFromMinutes(long minutes) {

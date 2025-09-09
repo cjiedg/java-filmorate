@@ -1,13 +1,14 @@
 package ru.yandex.practicum.filmorate.model;
 
-import jakarta.persistence.Entity;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -16,6 +17,8 @@ import java.util.Map;
 @Data
 @EqualsAndHashCode(of = "email")
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class User {
 
     private final Map<Long, Boolean> friends = new HashMap<>();

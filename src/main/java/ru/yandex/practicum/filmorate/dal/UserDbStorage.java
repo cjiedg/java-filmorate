@@ -1,0 +1,138 @@
+package ru.yandex.practicum.filmorate.dal;
+
+import org.springframework.context.annotation.Primary;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.dal.mappers.UserRowMapper;
+import ru.yandex.practicum.filmorate.model.User;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+@Repository
+@Primary
+public class UserDbStorage extends BaseRepository<User> {
+
+
+    private static final String FIND_ALL_SQL = "SELECT * FROM users";
+    private static final String FIND_BY_ID_SQL = "SELECT * FROM users WHERE user_id = ?";
+    private static final String INSERT_USER_SQL = "INSERT INTO users (email, login, name, birthday) VALUES (?, ?, ?, ?)";
+    private static final String UPDATE_USER_SQL = "UPDATE users SET email = ?, login = ?, name = ?, birthday = ? WHERE user_id = ?";
+    private static final String DELETE_USER_SQL = "DELETE FROM users WHERE user_id = ?";
+
+    private static final String GET_FRIENDS_SQL = "SELECT friend_id, status FROM friendship WHERE user_id = ?";
+    private static final String GET_FRIENDS_FOR_USERS_SQL = "SELECT user_id, friend_id, status FROM friendship WHERE user_id IN (%s)";
+    private static final String ADD_FRIEND_SQL = "INSERT INTO friendship (user_id, friend_id, status) VALUES (?, ?, ?)";
+    private static final String UPDATE_FRIEND_STATUS_SQL = "UPDATE friendship SET status = ? WHERE user_id = ? AND friend_id = ?";
+    private static final String REMOVE_FRIEND_SQL = "DELETE FROM friendship WHERE user_id = ? AND friend_id = ?";
+    private static final String DELETE_FRIENDSHIP_SQL = "DELETE FROM friendship WHERE user_id = ? OR friend_id = ?";
+    private static final String COUNT_FRIENDSHIP_SQL = "SELECT COUNT(*) FROM friendship WHERE user_id = ? AND friend_id = ?";
+
+
+    public UserDbStorage(JdbcTemplate jdbcTemplate, UserRowMapper userRowMapper) {
+        super(jdbcTemplate, userRowMapper);
+    }
+
+
+    public Collection<User> findAll() {
+        List<User> users = super.findAll(FIND_ALL_SQL);
+        loadFriendsForUsers(users);
+        return users;
+    }
+
+    public User create(User user) {
+        Long userId = super.insert(INSERT_USER_SQL,
+                user.getEmail(), user.getLogin(), user.getName(), user.getBirthday());
+        user.setId(userId);
+        return getUserById(userId).orElse(user);
+    }
+
+    public User update(User newUser, User oldUser) {
+        super.update(UPDATE_USER_SQL,
+                newUser.getEmail(), newUser.getLogin(), newUser.getName(), newUser.getBirthday(), oldUser.getId());
+        return getUserById(oldUser.getId()).orElse(newUser);
+    }
+
+    public Optional<User> getUserById(long id) {
+        Optional<User> userOptional = super.findById(FIND_BY_ID_SQL, id);
+        userOptional.ifPresent(this::loadUserFriends);
+        return userOptional;
+    }
+
+    public void delete(long id) {
+        jdbcTemplate.update(DELETE_FRIENDSHIP_SQL, id, id);
+        super.delete(DELETE_USER_SQL, id);
+    }
+
+
+    public void addFriend(long userId, long friendId) {
+        if (!friendshipExists(userId, friendId)) {
+            jdbcTemplate.update(ADD_FRIEND_SQL, userId, friendId, false);
+        }
+    }
+
+    public void confirmFriend(long userId, long friendId) {
+
+        jdbcTemplate.update(UPDATE_FRIEND_STATUS_SQL, true, userId, friendId);
+
+        if (!friendshipExists(friendId, userId)) {
+            jdbcTemplate.update(ADD_FRIEND_SQL, friendId, userId, true);
+        } else {
+            jdbcTemplate.update(UPDATE_FRIEND_STATUS_SQL, true, friendId, userId);
+        }
+    }
+
+    public void removeFriend(long userId, long friendId) {
+        jdbcTemplate.update(REMOVE_FRIEND_SQL, userId, friendId);
+        jdbcTemplate.update(REMOVE_FRIEND_SQL, friendId, userId);
+    }
+
+    public List<User> getCommonFriends(long userId1, long userId2) {
+        String sql = "SELECT u.* FROM users u " +
+                "JOIN friendship uf1 ON u.user_id = uf1.friend_id " +
+                "JOIN friendship uf2 ON u.user_id = uf2.friend_id " +
+                "WHERE uf1.user_id = ? AND uf2.user_id = ? AND uf1.status = true AND uf2.status = true";
+        List<User> commonFriends = jdbcTemplate.query(sql, this.rowMapper, userId1, userId2);
+        loadFriendsForUsers(commonFriends);
+        return commonFriends;
+    }
+
+
+    private void loadUserFriends(User user) {
+        Map<Long, Boolean> friends = new HashMap<>();
+        jdbcTemplate.query(GET_FRIENDS_SQL, rs -> {
+            friends.put(rs.getLong("friend_id"), rs.getBoolean("status"));
+        }, user.getId());
+        user.getFriends().clear();
+        user.getFriends().putAll(friends);
+    }
+
+    private void loadFriendsForUsers(List<User> users) {
+        if (users.isEmpty()) return;
+
+        String userIds = users.stream().map(u -> String.valueOf(u.getId())).collect(Collectors.joining(","));
+        String sql = String.format(GET_FRIENDS_FOR_USERS_SQL, userIds);
+
+        Map<Long, Map<Long, Boolean>> userFriendsMap = new HashMap<>();
+        jdbcTemplate.query(sql, rs -> {
+            long userId = rs.getLong("user_id");
+            userFriendsMap.computeIfAbsent(userId, k -> new HashMap<>())
+                    .put(rs.getLong("friend_id"), rs.getBoolean("status"));
+        });
+
+        users.forEach(user -> {
+            Map<Long, Boolean> friends = userFriendsMap.getOrDefault(user.getId(), new HashMap<>());
+            user.getFriends().clear();
+            user.getFriends().putAll(friends);
+        });
+    }
+
+    private boolean friendshipExists(long userId, long friendId) {
+        Integer count = jdbcTemplate.queryForObject(COUNT_FRIENDSHIP_SQL, Integer.class, userId, friendId);
+        return count != null && count > 0;
+    }
+}
