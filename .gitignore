@@ -44,11 +44,3 @@ build/
 
 *.db
 db/*
-
-# Checkstyle
-checkstyle.xml
-checkstyle-suppressions.xml
-*.checkstyle
-/.checkstyle/
-target/checkstyle-result.xml
-target/checkstyle-cachefile

@@ -11,7 +11,9 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 
 import java.time.Duration;
-import java.util.HashSet;
+import java.util.Comparator;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -28,40 +30,46 @@ public final class FilmMapper {
             film.setDuration(Duration.ofMinutes(request.getDuration()));
         }
 
-        film.setMpaId(request.getMpaId());
-
-        if (request.getGenreId() != null) {
-            film.setGenreIds(new HashSet<>(request.getGenreId()));
-            film.setGenres(request.getGenreId().stream()
-                    .map(id -> new Genre(id, null))
-                    .collect(Collectors.toSet()));
+        if (request.getMpa() != null) {
+            film.setMpaId(request.getMpa().getId());
         }
 
+        if (request.getGenres() != null && !request.getGenres().isEmpty()) {
+            Set<Long> genreIds = request.getGenres().stream()
+                    .map(Genre::getId)
+                    .collect(Collectors.toSet());
+            film.setGenreIds(genreIds);
+
+            Set<Genre> genres = request.getGenres().stream()
+                    .map(g -> new Genre(g.getId(), g.getName()))
+                    .collect(Collectors.toSet());
+            film.setGenres(genres);
+        }
         return film;
     }
 
     public static Film mapToFilm(UpdateFilmRequest request, Film existingFilm) {
-        if (request.getName() != null) {
-            existingFilm.setName(request.getName());
+        if (request.getName() != null) existingFilm.setName(request.getName());
+        if (request.getDescription() != null) existingFilm.setDescription(request.getDescription());
+        if (request.getReleaseDate() != null) existingFilm.setReleaseDate(request.getReleaseDate());
+        if (request.getDuration() != null) existingFilm.setDuration(Duration.ofMinutes(request.getDuration()));
+
+        if (request.getMpa() != null) {
+            existingFilm.setMpaId(request.getMpa().getId());
         }
-        if (request.getDescription() != null) {
-            existingFilm.setDescription(request.getDescription());
+
+        if (request.getGenres() != null && !request.getGenres().isEmpty()) {
+            Set<Long> genreIds = request.getGenres().stream()
+                    .map(Genre::getId)
+                    .collect(Collectors.toSet());
+            existingFilm.setGenreIds(genreIds);
+
+            Set<Genre> genres = request.getGenres().stream()
+                    .map(g -> new Genre(g.getId(), g.getName()))
+                    .collect(Collectors.toSet());
+            existingFilm.setGenres(genres);
         }
-        if (request.getReleaseDate() != null) {
-            existingFilm.setReleaseDate(request.getReleaseDate());
-        }
-        if (request.getDuration() != null) {
-            existingFilm.setDuration(Duration.ofMinutes(request.getDuration()));
-        }
-        if (request.getMpaId() != null) {
-            existingFilm.setMpaId(request.getMpaId());
-        }
-        if (request.getGenreIds() != null) {
-            existingFilm.setGenreIds(new HashSet<>(request.getGenreIds()));
-            existingFilm.setGenres(request.getGenreIds().stream()
-                    .map(id -> new Genre(id, null))
-                    .collect(Collectors.toSet()));
-        }
+
         return existingFilm;
     }
 
@@ -72,6 +80,7 @@ public final class FilmMapper {
         dto.setDescription(film.getDescription());
         dto.setReleaseDate(film.getReleaseDate());
         dto.setDuration(film.getDuration() != null ? film.getDuration().toMinutes() : null);
+
 
         if (film.getMpa() != null) {
             MpaDto mpaDto = new MpaDto();
@@ -84,20 +93,23 @@ public final class FilmMapper {
             dto.setMpa(mpaDto);
         }
 
+
         if (film.getGenres() != null && !film.getGenres().isEmpty()) {
-            Set<GenreDto> genreDtos = film.getGenres().stream()
+            List<GenreDto> genreDtos = film.getGenres().stream()
+                    .sorted(Comparator.comparingLong(Genre::getId))
                     .map(genre -> {
                         GenreDto g = new GenreDto();
                         g.setId(genre.getId());
                         g.setName(genre.getName());
                         return g;
                     })
-                    .collect(Collectors.toSet());
-            dto.setGenres(genreDtos);
+                    .collect(Collectors.toList());
+            dto.setGenres(new LinkedHashSet<>(genreDtos));
         }
 
         dto.setLikesCount(film.getLikes() != null ? film.getLikes().size() : 0);
         return dto;
     }
 }
+
 

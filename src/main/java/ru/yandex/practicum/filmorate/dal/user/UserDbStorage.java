@@ -109,23 +109,40 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public void addFriend(long userId, long friendId) {
-        jdbcTemplate.update("INSERT INTO friendship (user_id, friend_id, status) VALUES (?, ?, ?)", userId, friendId, false);
+
+        if (friendshipExists(userId, friendId)) {
+            jdbcTemplate.update("UPDATE friendship SET status = ? WHERE user_id = ? AND friend_id = ?", true, userId, friendId);
+        } else {
+            jdbcTemplate.update("INSERT INTO friendship (user_id, friend_id, status) VALUES (?, ?, ?)", userId, friendId, true);
+        }
     }
 
     @Override
     public void confirmFriend(long userId, long friendId) {
-        jdbcTemplate.update("UPDATE friendship SET status = ? WHERE user_id = ? AND friend_id = ?", true, userId, friendId);
-        if (!friendshipExists(friendId, userId)) {
-            jdbcTemplate.update("INSERT INTO friendship (user_id, friend_id, status) VALUES (?, ?, ?)", friendId, userId, true);
-        } else {
+
+        if (friendshipExists(friendId, userId)) {
+
             jdbcTemplate.update("UPDATE friendship SET status = ? WHERE user_id = ? AND friend_id = ?", true, friendId, userId);
+
+            if (friendshipExists(userId, friendId)) {
+                jdbcTemplate.update("UPDATE friendship SET status = ? WHERE user_id = ? AND friend_id = ?", true, userId, friendId);
+            } else {
+                jdbcTemplate.update("INSERT INTO friendship (user_id, friend_id, status) VALUES (?, ?, ?)", userId, friendId, true);
+            }
+        } else {
+
+            if (friendshipExists(userId, friendId)) {
+                jdbcTemplate.update("UPDATE friendship SET status = ? WHERE user_id = ? AND friend_id = ?", true, userId, friendId);
+            } else {
+                jdbcTemplate.update("INSERT INTO friendship (user_id, friend_id, status) VALUES (?, ?, ?)", userId, friendId, true);
+            }
         }
     }
 
     @Override
     public void removeFriend(long userId, long friendId) {
+
         jdbcTemplate.update("DELETE FROM friendship WHERE user_id = ? AND friend_id = ?", userId, friendId);
-        jdbcTemplate.update("DELETE FROM friendship WHERE user_id = ? AND friend_id = ?", friendId, userId);
     }
 
     @Override
@@ -159,7 +176,6 @@ public class UserDbStorage implements UserStorage {
         user.getFriends().clear();
         user.getFriends().putAll(friends);
     }
-
 
 
     private void loadFriendsForUsers(List<User> users) {
