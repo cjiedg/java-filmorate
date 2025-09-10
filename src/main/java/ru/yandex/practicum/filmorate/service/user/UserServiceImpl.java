@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -102,12 +101,11 @@ public class UserServiceImpl implements UserService {
         User user = getUserOrThrow(userId);
         User friend = getUserOrThrow(friendId);
 
-        // Добавляем через UserStorage (DAO)
+
         userStorage.addFriend(userId, friendId);
 
-        // Локальный объект обновлять необязательно, база это сохраняет
-    }
 
+    }
 
 
     @Override
@@ -115,13 +113,20 @@ public class UserServiceImpl implements UserService {
         validateId(userId);
         validateId(friendId);
 
-        // Подтверждаем дружбу обе стороны через DAO
+
         userStorage.confirmFriend(userId, friendId);
     }
 
 
     @Override
     public void removeFriend(long userId, long friendId) {
+        validateId(userId);
+        validateId(friendId);
+
+
+        User user = getUserOrThrow(userId);
+        User friend = getUserOrThrow(friendId);
+
         userStorage.removeFriend(userId, friendId);
     }
 
@@ -129,7 +134,7 @@ public class UserServiceImpl implements UserService {
     public List<UserDto> getFriends(long userId) {
         User user = getUserOrThrow(userId);
 
-        // Получаем уже подтвержденных друзей из базы
+
         List<User> friends = userStorage.getFriends(userId);
 
         Map<Long, User> allUsersMap = userStorage.findAll().stream()
@@ -139,9 +144,6 @@ public class UserServiceImpl implements UserService {
                 .map(f -> UserMapper.mapToUserDto(f, allUsersMap))
                 .collect(Collectors.toList());
     }
-
-
-
 
 
     @Override
@@ -158,7 +160,6 @@ public class UserServiceImpl implements UserService {
                 .map(f -> UserMapper.mapToUserDto(f, allUsersMap))
                 .collect(Collectors.toList());
     }
-
 
 
     private void validateId(Long id) {
