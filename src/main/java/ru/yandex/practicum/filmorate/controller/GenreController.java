@@ -1,38 +1,28 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.yandex.practicum.filmorate.dal.GenreRepository;
 import ru.yandex.practicum.filmorate.dto.GenreDto;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.mapper.GenreMapper;
-import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.service.genre.GenreService;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/genres")
+@RequiredArgsConstructor
 public class GenreController {
-    private final GenreRepository genreRepository;
-
-    public GenreController(GenreRepository genreDao) {
-        this.genreRepository = genreDao;
-    }
+    private final GenreService genreService;
 
     @GetMapping
     public List<GenreDto> getAllGenres() {
-        return genreRepository.findAll().stream()
-                .map(GenreMapper::mapToGenreDto)
-                .collect(Collectors.toList());
+        return genreService.getAllGenres();
     }
 
     @GetMapping("/{id}")
     public GenreDto getGenreById(@PathVariable long id) {
-        Genre genre = genreRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Жанр с id " + id + " не найден"));
-        return GenreMapper.mapToGenreDto(genre);
+        return genreService.getGenreById(id);
     }
 }
