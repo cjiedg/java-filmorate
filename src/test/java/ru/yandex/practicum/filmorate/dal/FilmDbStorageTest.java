@@ -8,8 +8,12 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
+import ru.yandex.practicum.filmorate.dal.film.FilmDbStorage;
 import ru.yandex.practicum.filmorate.dal.mappers.FilmRowMapper;
+import ru.yandex.practicum.filmorate.dal.mappers.GenreRowMapper;
+import ru.yandex.practicum.filmorate.dal.mappers.MpaRowMapper;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -21,13 +25,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 @JdbcTest
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-@Import({FilmDbStorage.class, FilmRowMapper.class})
+@Import({FilmDbStorage.class, FilmRowMapper.class, GenreRowMapper.class, MpaRowMapper.class})
 class FilmDbStorageTest {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
     private FilmDbStorage filmDbStorage;
+    private GenreRepository genreRepository;
+    private MpaRowMapper mpaRowMapper;
 
     @BeforeEach
     void setup() {
@@ -47,17 +53,19 @@ class FilmDbStorageTest {
         jdbcTemplate.update("INSERT INTO users (user_id, login, name, email, birthday) VALUES (?, ?, ?, ?, ?)",
                 1, "testuser", "Тестовый Юзер", "test@example.com", LocalDate.of(1990,1,1));
 
-        filmDbStorage = new FilmDbStorage(jdbcTemplate, new FilmRowMapper());
+        filmDbStorage = new FilmDbStorage(jdbcTemplate, new FilmRowMapper(),new GenreRowMapper(), new MpaRowMapper());
     }
 
 
     private Film createSampleFilm() {
+        Mpa mpa = new Mpa();
         Film film = new Film();
         film.setName("Интерстеллар");
         film.setDescription("Фантастический эпос о путешествии к червоточинам");
         film.setDuration(Duration.ofMinutes(169));
         film.setReleaseDate(LocalDate.of(2014, 11, 6));
-        film.setRating(3L); 
+        mpa.setId(1L);
+        film.setMpa(mpa);
         return film;
     }
 

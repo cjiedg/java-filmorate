@@ -1,25 +1,28 @@
 package ru.yandex.practicum.filmorate.service.film;
 
+import ru.yandex.practicum.filmorate.dto.Film.CreateFilmRequest;
+import ru.yandex.practicum.filmorate.dto.Film.FilmDto;
+import ru.yandex.practicum.filmorate.dto.Film.UpdateFilmRequest;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
-import ru.yandex.practicum.filmorate.model.Film;
 
-import java.util.Collection;
 import java.util.List;
 
+
 public interface FilmService {
-    void addLike(long userId, long filmId);
+    void addLike(Long filmId, Long userId);
 
-    void removeLike(long userId, long filmId);
+    void removeLike(Long filmId, Long userId);
 
-    List<Film> getTopFilms(int count) throws ValidationException;
+    List<FilmDto> getTopFilms(int count) throws ValidationException;
 
-    Collection<Film> findAll();
+    List<FilmDto> findAll();
 
-    Film getFilmById(Long id);
+    FilmDto getFilmById(Long id);
 
-    Film create(Film film);
+    FilmDto create(CreateFilmRequest request);
 
-    Film update(Film newFilm);
+    FilmDto update(UpdateFilmRequest request);
 
     void delete(Long id);
 }
+

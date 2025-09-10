@@ -7,6 +7,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
 import ru.yandex.practicum.filmorate.dal.mappers.UserRowMapper;
+import ru.yandex.practicum.filmorate.dal.user.UserDbStorage;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
@@ -32,8 +33,8 @@ class UserDbStorageTest {
 
     @Test
     public void testFindAll_WithUsers() {
-        User user1 = createAndSaveUser("test1@email.com", "testlogin1", "Test User 1");
-        User user2 = createAndSaveUser("test2@email.com", "testlogin2", "Test User 2");
+        User user1 = createAndSaveUser("testlogin1", "Test User 1", "test1@email.com");
+        User user2 = createAndSaveUser("testlogin2", "Test User 2", "test2@email.com");
 
         Collection<User> users = userDbStorage.findAll();
 
@@ -45,7 +46,7 @@ class UserDbStorageTest {
 
     @Test
     public void testCreateUser() {
-        User newUser = createTestUser("test@email.com", "testlogin", "Test User");
+        User newUser = createTestUser("testlogin", "Test User", "test@email.com");
 
         User createdUser = userDbStorage.create(newUser);
 
@@ -63,12 +64,12 @@ class UserDbStorageTest {
 
     @Test
     public void testUpdateUser() {
-        User originalUser = createAndSaveUser("original@email.com", "original", "Original User");
+        User originalUser = createAndSaveUser("original", "Original User", "original@email.com");
 
-        User updatedUserData = createTestUser("updated@email.com", "updated", "Updated User");
+        User updatedUserData = createTestUser("updated", "Updated User", "updated@email.com");
         updatedUserData.setId(originalUser.getId());
 
-        User updatedUser = userDbStorage.update(updatedUserData, originalUser);
+        User updatedUser = userDbStorage.update(updatedUserData);
 
         assertThat(updatedUser)
                 .isNotNull()
@@ -80,7 +81,7 @@ class UserDbStorageTest {
 
     @Test
     public void testGetUserById_WhenUserExists() {
-        User testUser = createAndSaveUser("test@email.com", "testuser", "Test User");
+        User testUser = createAndSaveUser("testuser", "Test User", "test@email.com");
 
         Optional<User> foundUser = userDbStorage.getUserById(testUser.getId());
 
@@ -100,17 +101,19 @@ class UserDbStorageTest {
 
     @Test
     public void testDeleteUser() {
-        User testUser = createAndSaveUser("delete@email.com", "todelete", "To Delete");
+        User testUser = createAndSaveUser("todelete", "To Delete", "delete@email.com");
 
         assertThat(userDbStorage.getUserById(testUser.getId())).isPresent();
-        userDbStorage.delete(testUser.getId());
+
+        userDbStorage.delete(testUser);
+
         assertThat(userDbStorage.getUserById(testUser.getId())).isNotPresent();
     }
 
     @Test
     public void testAddFriend() {
-        User user1 = createAndSaveUser("user1@email.com", "user1", "User One");
-        User user2 = createAndSaveUser("user2@email.com", "user2", "User Two");
+        User user1 = createAndSaveUser("user1", "User One", "user1@email.com");
+        User user2 = createAndSaveUser("user2", "User Two", "user2@email.com");
 
         userDbStorage.addFriend(user1.getId(), user2.getId());
 
@@ -124,8 +127,8 @@ class UserDbStorageTest {
 
     @Test
     public void testConfirmFriend() {
-        User user1 = createAndSaveUser("user1@email.com", "user1", "User One");
-        User user2 = createAndSaveUser("user2@email.com", "user2", "User Two");
+        User user1 = createAndSaveUser("user1", "User One", "user1@email.com");
+        User user2 = createAndSaveUser("user2", "User Two", "user2@email.com");
 
         userDbStorage.addFriend(user1.getId(), user2.getId());
         userDbStorage.confirmFriend(user2.getId(), user1.getId());
@@ -140,8 +143,8 @@ class UserDbStorageTest {
 
     @Test
     public void testRemoveFriend() {
-        User user1 = createAndSaveUser("user1@email.com", "user1", "User One");
-        User user2 = createAndSaveUser("user2@email.com", "user2", "User Two");
+        User user1 = createAndSaveUser("user1", "User One", "user1@email.com");
+        User user2 = createAndSaveUser("user2", "User Two", "user2@email.com");
 
         userDbStorage.addFriend(user1.getId(), user2.getId());
 
@@ -164,15 +167,13 @@ class UserDbStorageTest {
 
     @Test
     public void testGetCommonFriends() {
-        User user1 = createAndSaveUser("user1@email.com", "user1", "User One");
-        User user2 = createAndSaveUser("user2@email.com", "user2", "User Two");
-        User commonFriend = createAndSaveUser("common@email.com", "common", "Common Friend");
+        User user1 = createAndSaveUser("user1", "User One", "user1@email.com");
+        User user2 = createAndSaveUser("user2", "User Two", "user2@email.com");
+        User commonFriend = createAndSaveUser("common", "Common Friend", "common@email.com");
 
-        
         userDbStorage.addFriend(user1.getId(), commonFriend.getId());
         userDbStorage.addFriend(user2.getId(), commonFriend.getId());
 
-        
         userDbStorage.confirmFriend(commonFriend.getId(), user1.getId());
         userDbStorage.confirmFriend(commonFriend.getId(), user2.getId());
 
@@ -184,27 +185,27 @@ class UserDbStorageTest {
                 .containsExactly(commonFriend.getId());
     }
 
-
     @Test
     public void testGetCommonFriends_WhenNoCommonFriends() {
-        User user1 = createAndSaveUser("user1@email.com", "user1", "User One");
-        User user2 = createAndSaveUser("user2@email.com", "user2", "User Two");
+        User user1 = createAndSaveUser("user1", "User One", "user1@email.com");
+        User user2 = createAndSaveUser("user2", "User Two", "user2@email.com");
 
         List<User> commonFriends = userDbStorage.getCommonFriends(user1.getId(), user2.getId());
         assertThat(commonFriends).isEmpty();
     }
 
-    private User createTestUser(String email, String login, String name) {
+    
+    private User createTestUser(String login, String name, String email) {
         User user = new User();
-        user.setEmail(email);
         user.setLogin(login);
         user.setName(name);
+        user.setEmail(email);
         user.setBirthday(LocalDate.now().minusYears(20));
         return user;
     }
 
-    private User createAndSaveUser(String email, String login, String name) {
-        User user = createTestUser(email, login, name);
+    private User createAndSaveUser(String login, String name, String email) {
+        User user = createTestUser(login, name, email);
         return userDbStorage.create(user);
     }
 }

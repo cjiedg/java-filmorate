@@ -8,9 +8,8 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.jdbc.Sql;
-import ru.yandex.practicum.filmorate.dal.mappers.MpaRatingRowMapper;
-import ru.yandex.practicum.filmorate.model.MpaRating;
+import ru.yandex.practicum.filmorate.dal.mappers.MpaRowMapper;
+import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.util.Comparator;
 import java.util.List;
@@ -23,10 +22,10 @@ import static org.assertj.core.api.Assumptions.assumeThat;
 @JdbcTest
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-@Import({MpaRatingRepository.class, MpaRatingRowMapper.class})
-class MpaRatingRepositoryTest {
+@Import({MpaRepository.class, MpaRowMapper.class})
+class MpaRepositoryTest {
 
-    private final MpaRatingRepository mpaRatingRepository;
+    private final MpaRepository mpaRatingRepository;
     private final JdbcTemplate jdbcTemplate;
 
     
@@ -46,7 +45,7 @@ class MpaRatingRepositoryTest {
 
     @Test
     public void testFindAll() {
-        List<MpaRating> ratings = mpaRatingRepository.findAll();
+        List<Mpa> ratings = mpaRatingRepository.findAll();
 
         assertThat(ratings)
                 .isNotNull()
@@ -55,24 +54,24 @@ class MpaRatingRepositoryTest {
                     assertThat(rating.getId()).isPositive();
                     assertThat(rating.getName()).isNotBlank();
                 })
-                .isSortedAccordingTo(Comparator.comparing(MpaRating::getId));
+                .isSortedAccordingTo(Comparator.comparing(Mpa::getId));
 
         
         assertThat(ratings)
-                .extracting(MpaRating::getName)
+                .extracting(Mpa::getName)
                 .doesNotHaveDuplicates();
     }
 
     @Test
     public void testFindById_WhenRatingExists() {
         
-        List<MpaRating> allRatings = mpaRatingRepository.findAll();
+        List<Mpa> allRatings = mpaRatingRepository.findAll();
         assumeThat(allRatings).isNotEmpty();
 
-        MpaRating firstRating = allRatings.get(0);
+        Mpa firstRating = allRatings.get(0);
         long existingRatingId = firstRating.getId();
 
-        Optional<MpaRating> ratingOptional = mpaRatingRepository.findById(existingRatingId);
+        Optional<Mpa> ratingOptional = mpaRatingRepository.findById(existingRatingId);
 
         assertThat(ratingOptional)
                 .isPresent()
@@ -84,12 +83,12 @@ class MpaRatingRepositoryTest {
 
     @Test
     public void testFindById_WithVariousExistingIds() {
-        List<MpaRating> allRatings = mpaRatingRepository.findAll();
+        List<Mpa> allRatings = mpaRatingRepository.findAll();
         assumeThat(allRatings).isNotEmpty();
 
         
-        for (MpaRating expectedRating : allRatings) {
-            Optional<MpaRating> ratingOptional = mpaRatingRepository.findById(expectedRating.getId());
+        for (Mpa expectedRating : allRatings) {
+            Optional<Mpa> ratingOptional = mpaRatingRepository.findById(expectedRating.getId());
 
             assertThat(ratingOptional)
                     .isPresent()
@@ -103,15 +102,15 @@ class MpaRatingRepositoryTest {
     @Test
     public void testFindById_WhenRatingNotExists() {
         
-        List<MpaRating> allRatings = mpaRatingRepository.findAll();
+        List<Mpa> allRatings = mpaRatingRepository.findAll();
         long maxId = allRatings.stream()
-                .mapToLong(MpaRating::getId)
+                .mapToLong(Mpa::getId)
                 .max()
                 .orElse(0);
 
         long nonExistingRatingId = maxId + 100;
 
-        Optional<MpaRating> ratingOptional = mpaRatingRepository.findById(nonExistingRatingId);
+        Optional<Mpa> ratingOptional = mpaRatingRepository.findById(nonExistingRatingId);
         assertThat(ratingOptional).isNotPresent();
     }
 
@@ -121,14 +120,14 @@ class MpaRatingRepositoryTest {
         List<Long> invalidIds = List.of(0L, -1L, -100L, Long.MIN_VALUE);
 
         for (Long invalidId : invalidIds) {
-            Optional<MpaRating> ratingOptional = mpaRatingRepository.findById(invalidId);
+            Optional<Mpa> ratingOptional = mpaRatingRepository.findById(invalidId);
             assertThat(ratingOptional).isNotPresent();
         }
     }
 
     @Test
     public void testAllRatingNamesAreValid() {
-        List<MpaRating> ratings = mpaRatingRepository.findAll();
+        List<Mpa> ratings = mpaRatingRepository.findAll();
 
         assertThat(ratings)
                 .isNotEmpty()
@@ -144,7 +143,7 @@ rating.getName(), validRatingNames)
 
 @Test
 public void testRatingOrderAndConsistency() {
-    List<MpaRating> ratings = mpaRatingRepository.findAll();
+    List<Mpa> ratings = mpaRatingRepository.findAll();
 
     if (ratings.size() > 1) {
         
@@ -163,8 +162,8 @@ public void testRatingOrderAndConsistency() {
 @Test
 public void testRepositoryReturnsSameResultsForMultipleCalls() {
     
-    List<MpaRating> firstCall = mpaRatingRepository.findAll();
-    List<MpaRating> secondCall = mpaRatingRepository.findAll();
+    List<Mpa> firstCall = mpaRatingRepository.findAll();
+    List<Mpa> secondCall = mpaRatingRepository.findAll();
 
     assertThat(firstCall)
             .hasSameSizeAs(secondCall)
@@ -173,12 +172,12 @@ public void testRepositoryReturnsSameResultsForMultipleCalls() {
 
 @Test
 public void testFindById_Consistency() {
-    List<MpaRating> allRatings = mpaRatingRepository.findAll();
+    List<Mpa> allRatings = mpaRatingRepository.findAll();
     assumeThat(allRatings).isNotEmpty();
 
     
-    MpaRating expectedRating = allRatings.get(0);
-    Optional<MpaRating> foundRating = mpaRatingRepository.findById(expectedRating.getId());
+    Mpa expectedRating = allRatings.get(0);
+    Optional<Mpa> foundRating = mpaRatingRepository.findById(expectedRating.getId());
 
     assertThat(foundRating)
             .isPresent()
@@ -190,11 +189,11 @@ public void testFindById_Consistency() {
 
 @Test
 public void testNoInvalidRatingNamesInDatabase() {
-    List<MpaRating> ratings = mpaRatingRepository.findAll();
+    List<Mpa> ratings = mpaRatingRepository.findAll();
 
     
     List<String> dbRatingNames = ratings.stream()
-            .map(MpaRating::getName)
+            .map(Mpa::getName)
             .collect(Collectors.toList());
 
     

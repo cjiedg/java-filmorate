@@ -7,8 +7,11 @@ import org.springframework.jdbc.support.KeyHolder;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public abstract class BaseRepository<T> {
 
@@ -27,6 +30,14 @@ public abstract class BaseRepository<T> {
         } catch (Exception e) {
             return Optional.empty();
         }
+    }
+
+    public List<T> findByIds(Collection<Long> ids, String sqlTemplate, String idColumn) {
+        if (ids == null || ids.isEmpty()) return Collections.emptyList();
+
+        String inSql = ids.stream().map(String::valueOf).collect(Collectors.joining(","));
+        String sql = sqlTemplate.replace("{ids}", inSql);
+        return jdbcTemplate.query(sql, rowMapper);
     }
 
     protected List<T> findAll(String sql) {

@@ -15,14 +15,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Data
-@EqualsAndHashCode(of = "email")
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(of = "id")
 public class User {
-
-    private final Map<Long, Boolean> friends = new HashMap<>();
     private Long id;
+
     @NotNull(message = "Имейл не может быть пустым")
     @Email(message = "Неверный формат электронной почты")
     private String email;
@@ -34,4 +33,7 @@ public class User {
 
     @PastOrPresent(message = "Дата рождения не может быть в будущем")
     private LocalDate birthday;
+
+    @Builder.Default
+    private Map<Long, Boolean> friends = new HashMap<>();
 }
