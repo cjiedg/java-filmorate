@@ -1,7 +1,10 @@
 package ru.yandex.practicum.filmorate.service.user;
 
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.dto.User.CreateUserRequest;
+import ru.yandex.practicum.filmorate.dto.User.UpdateUserRequest;
+import ru.yandex.practicum.filmorate.dto.User.UserDto;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface UserService {
@@ -9,7 +12,19 @@ public interface UserService {
 
     void removeFriend(long userId, long friendId);
 
-    List<User> getFriends(long userId);
+    List<UserDto> getFriends(long userId);
 
-    List<User> getCommonFriends(long userId1, long userId2);
+    List<UserDto> getCommonFriends(long userId1, long userId2);
+
+    Collection<UserDto> findAll();
+
+    UserDto getUserById(Long id);
+
+    UserDto create(CreateUserRequest request);
+
+    UserDto update(UpdateUserRequest request);
+
+    void delete(long id);
+
+    void confirmFriendship(long userId, long friendId);
 }
