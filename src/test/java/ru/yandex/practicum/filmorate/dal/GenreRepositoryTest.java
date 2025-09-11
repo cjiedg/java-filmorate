@@ -30,20 +30,20 @@ class GenreRepositoryTest {
     @BeforeAll
     static void createTable(@Autowired JdbcTemplate jdbcTemplate) {
         jdbcTemplate.execute("""
-        CREATE TABLE IF NOT EXISTS genres (
-            genre_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-            name VARCHAR(255) NOT NULL
-        )
-    """);
+                    CREATE TABLE IF NOT EXISTS genres (
+                        genre_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                        name VARCHAR(255) NOT NULL
+                    )
+                """);
     }
 
 
     @BeforeEach
     void setupGenres() {
-        
+
         jdbcTemplate.update("DELETE FROM genres");
 
-        
+
         jdbcTemplate.update("INSERT INTO genres (genre_id, name) VALUES (?, ?)", 1, "Комедия");
         jdbcTemplate.update("INSERT INTO genres (genre_id, name) VALUES (?, ?)", 2, "Драма");
         jdbcTemplate.update("INSERT INTO genres (genre_id, name) VALUES (?, ?)", 3, "Триллер");

@@ -37,23 +37,23 @@ class FilmDbStorageTest {
 
     @BeforeEach
     void setup() {
-        
+
         jdbcTemplate.update("DELETE FROM film_likes");
         jdbcTemplate.update("DELETE FROM genre_film");
         jdbcTemplate.update("DELETE FROM films");
         jdbcTemplate.update("DELETE FROM rating");
 
-        
+
         jdbcTemplate.update("INSERT INTO rating (rating_id, name) VALUES (?, ?)", 1, "G");
         jdbcTemplate.update("INSERT INTO rating (rating_id, name) VALUES (?, ?)", 2, "PG");
         jdbcTemplate.update("INSERT INTO rating (rating_id, name) VALUES (?, ?)", 3, "PG-13");
         jdbcTemplate.update("INSERT INTO rating (rating_id, name) VALUES (?, ?)", 4, "R");
 
-        
-        jdbcTemplate.update("INSERT INTO users (user_id, login, name, email, birthday) VALUES (?, ?, ?, ?, ?)",
-                1, "testuser", "Тестовый Юзер", "test@example.com", LocalDate.of(1990,1,1));
 
-        filmDbStorage = new FilmDbStorage(jdbcTemplate, new FilmRowMapper(),new GenreRowMapper(), new MpaRowMapper());
+        jdbcTemplate.update("INSERT INTO users (user_id, login, name, email, birthday) VALUES (?, ?, ?, ?, ?)",
+                1, "testuser", "Тестовый Юзер", "test@example.com", LocalDate.of(1990, 1, 1));
+
+        filmDbStorage = new FilmDbStorage(jdbcTemplate, new FilmRowMapper(), new GenreRowMapper(), new MpaRowMapper());
     }
 
 
@@ -105,13 +105,13 @@ class FilmDbStorageTest {
     void testAddAndRemoveLike() {
         Film created = filmDbStorage.create(createSampleFilm());
 
-        
+
         filmDbStorage.addLike(created.getId(), 1L);
         Optional<Film> retrievedAfterLike = filmDbStorage.getFilmById(created.getId());
         assertThat(retrievedAfterLike).isPresent();
         assertThat(retrievedAfterLike.get().getLikes()).contains(1L);
 
-        
+
         filmDbStorage.removeLike(created.getId(), 1L);
         Optional<Film> retrievedAfterRemove = filmDbStorage.getFilmById(created.getId());
         assertThat(retrievedAfterRemove).isPresent();

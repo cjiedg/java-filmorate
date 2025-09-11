@@ -28,7 +28,7 @@ class MpaRepositoryTest {
     private final MpaRepository mpaRatingRepository;
     private final JdbcTemplate jdbcTemplate;
 
-    
+
     private final List<String> validRatingNames = List.of("G", "PG", "PG-13", "R", "NC-17");
 
     @BeforeEach
@@ -40,7 +40,6 @@ class MpaRepositoryTest {
         jdbcTemplate.update("INSERT INTO rating (rating_id, name) VALUES (?, ?)", 4, "R");
         jdbcTemplate.update("INSERT INTO rating (rating_id, name) VALUES (?, ?)", 5, "NC-17");
     }
-
 
 
     @Test
@@ -56,7 +55,7 @@ class MpaRepositoryTest {
                 })
                 .isSortedAccordingTo(Comparator.comparing(Mpa::getId));
 
-        
+
         assertThat(ratings)
                 .extracting(Mpa::getName)
                 .doesNotHaveDuplicates();
@@ -64,7 +63,7 @@ class MpaRepositoryTest {
 
     @Test
     public void testFindById_WhenRatingExists() {
-        
+
         List<Mpa> allRatings = mpaRatingRepository.findAll();
         assumeThat(allRatings).isNotEmpty();
 
@@ -86,7 +85,7 @@ class MpaRepositoryTest {
         List<Mpa> allRatings = mpaRatingRepository.findAll();
         assumeThat(allRatings).isNotEmpty();
 
-        
+
         for (Mpa expectedRating : allRatings) {
             Optional<Mpa> ratingOptional = mpaRatingRepository.findById(expectedRating.getId());
 
@@ -101,7 +100,7 @@ class MpaRepositoryTest {
 
     @Test
     public void testFindById_WhenRatingNotExists() {
-        
+
         List<Mpa> allRatings = mpaRatingRepository.findAll();
         long maxId = allRatings.stream()
                 .mapToLong(Mpa::getId)
@@ -116,7 +115,7 @@ class MpaRepositoryTest {
 
     @Test
     public void testFindById_WithInvalidIds() {
-        
+
         List<Long> invalidIds = List.of(0L, -1L, -100L, Long.MIN_VALUE);
 
         for (Long invalidId : invalidIds) {
@@ -133,76 +132,76 @@ class MpaRepositoryTest {
                 .isNotEmpty()
                 .allSatisfy(rating -> {
                     assertThat(rating.getName()).isNotBlank();
-                    
+
                     assertThat(validRatingNames)
                             .withFailMessage("Rating name '%s' is not valid. Valid names are: %s",
-rating.getName(), validRatingNames)
-        .contains(rating.getName());
-        });
-        }
-
-@Test
-public void testRatingOrderAndConsistency() {
-    List<Mpa> ratings = mpaRatingRepository.findAll();
-
-    if (ratings.size() > 1) {
-        
-        for (int i = 0; i < ratings.size() - 1; i++) {
-            assertThat(ratings.get(i).getId())
-                    .isLessThan(ratings.get(i + 1).getId());
-        }
+                                    rating.getName(), validRatingNames)
+                            .contains(rating.getName());
+                });
     }
 
-    
-    assertThat(ratings)
-            .noneMatch(rating -> rating.getId() == null)
-            .noneMatch(rating -> rating.getName() == null);
-}
+    @Test
+    public void testRatingOrderAndConsistency() {
+        List<Mpa> ratings = mpaRatingRepository.findAll();
 
-@Test
-public void testRepositoryReturnsSameResultsForMultipleCalls() {
-    
-    List<Mpa> firstCall = mpaRatingRepository.findAll();
-    List<Mpa> secondCall = mpaRatingRepository.findAll();
+        if (ratings.size() > 1) {
 
-    assertThat(firstCall)
-            .hasSameSizeAs(secondCall)
-            .containsExactlyElementsOf(secondCall);
-}
+            for (int i = 0; i < ratings.size() - 1; i++) {
+                assertThat(ratings.get(i).getId())
+                        .isLessThan(ratings.get(i + 1).getId());
+            }
+        }
 
-@Test
-public void testFindById_Consistency() {
-    List<Mpa> allRatings = mpaRatingRepository.findAll();
-    assumeThat(allRatings).isNotEmpty();
 
-    
-    Mpa expectedRating = allRatings.get(0);
-    Optional<Mpa> foundRating = mpaRatingRepository.findById(expectedRating.getId());
+        assertThat(ratings)
+                .noneMatch(rating -> rating.getId() == null)
+                .noneMatch(rating -> rating.getName() == null);
+    }
 
-    assertThat(foundRating)
-            .isPresent()
-            .hasValueSatisfying(rating -> {
-                assertThat(rating.getId()).isEqualTo(expectedRating.getId());
-                assertThat(rating.getName()).isEqualTo(expectedRating.getName());
-            });
-}
+    @Test
+    public void testRepositoryReturnsSameResultsForMultipleCalls() {
 
-@Test
-public void testNoInvalidRatingNamesInDatabase() {
-    List<Mpa> ratings = mpaRatingRepository.findAll();
+        List<Mpa> firstCall = mpaRatingRepository.findAll();
+        List<Mpa> secondCall = mpaRatingRepository.findAll();
 
-    
-    List<String> dbRatingNames = ratings.stream()
-            .map(Mpa::getName)
-            .collect(Collectors.toList());
+        assertThat(firstCall)
+                .hasSameSizeAs(secondCall)
+                .containsExactlyElementsOf(secondCall);
+    }
 
-    
-    assertThat(dbRatingNames)
-            .isNotEmpty()
-            .allSatisfy(ratingName ->
-                    assertThat(validRatingNames)
-                            .withFailMessage("Invalid rating name found in database: '%s'", ratingName)
-                            .contains(ratingName)
-            );
-}
+    @Test
+    public void testFindById_Consistency() {
+        List<Mpa> allRatings = mpaRatingRepository.findAll();
+        assumeThat(allRatings).isNotEmpty();
+
+
+        Mpa expectedRating = allRatings.get(0);
+        Optional<Mpa> foundRating = mpaRatingRepository.findById(expectedRating.getId());
+
+        assertThat(foundRating)
+                .isPresent()
+                .hasValueSatisfying(rating -> {
+                    assertThat(rating.getId()).isEqualTo(expectedRating.getId());
+                    assertThat(rating.getName()).isEqualTo(expectedRating.getName());
+                });
+    }
+
+    @Test
+    public void testNoInvalidRatingNamesInDatabase() {
+        List<Mpa> ratings = mpaRatingRepository.findAll();
+
+
+        List<String> dbRatingNames = ratings.stream()
+                .map(Mpa::getName)
+                .collect(Collectors.toList());
+
+
+        assertThat(dbRatingNames)
+                .isNotEmpty()
+                .allSatisfy(ratingName ->
+                        assertThat(validRatingNames)
+                                .withFailMessage("Invalid rating name found in database: '%s'", ratingName)
+                                .contains(ratingName)
+                );
+    }
 }

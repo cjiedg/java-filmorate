@@ -194,7 +194,7 @@ class UserDbStorageTest {
         assertThat(commonFriends).isEmpty();
     }
 
-    
+
     private User createTestUser(String login, String name, String email) {
         User user = new User();
         user.setLogin(login);
